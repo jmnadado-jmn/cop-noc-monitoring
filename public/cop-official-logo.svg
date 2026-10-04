@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 80" width="420" height="80">
+  <rect width="420" height="80" fill="#00227b" />
+  <g transform="translate(12, 4)">
+    <svg viewBox="0 0 100 100" width="72" height="72">
+      <path d="M 51 12 C 58 9, 68 16, 68 32 C 68 40, 63 46, 58 48 C 64 42, 63 24, 51 12 Z" fill="#ffffff" />
+      <path d="M 50 16 A 27 27 0 1 0 74 48 C 74 44, 68 43, 66 46 A 20 20 0 1 1 50 23 Z" fill="#ffffff" />
+      <path d="M 50 24 C 57 28, 61 35, 59 42 C 57 47, 51 48, 47 44 C 43 40, 44 31, 50 24 Z" fill="#ffffff" />
+      <rect x="6" y="40" width="88" height="5" rx="1" stroke="#ffffff" stroke-width="2" fill="#00227b" />
+      <rect x="47.5" y="10" width="5" height="84" rx="1" stroke="#ffffff" stroke-width="2" fill="#00227b" />
+    </svg>
+  </g>
+  <text x="96" y="48" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="800" font-size="24" fill="#ffffff" letter-spacing="2">CATHEDRAL OF PRAISE</text>
+</svg>

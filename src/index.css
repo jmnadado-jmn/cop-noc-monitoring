@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #060b17;
+    color: #f1f5f9;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cathedral of Praise NOC Dark Mode Theme */
+.dark-noc {
+  background-color: #060b17 !important;
+  color: #f1f5f9 !important;
+}
+
+.dark-noc .bg-white {
+  background-color: #0c1427 !important;
+  color: #f1f5f9 !important;
+}
+
+.dark-noc .bg-slate-50 {
+  background-color: #080e1c !important;
+  color: #f1f5f9 !important;
+}
+
+.dark-noc .bg-slate-100 {
+  background-color: #101a30 !important;
+  color: #f1f5f9 !important;
+}
+
+.dark-noc .bg-slate-200 {
+  background-color: #17233e !important;
+  color: #f1f5f9 !important;
+}
+
+.dark-noc .border-slate-200,
+.dark-noc .border-slate-300 {
+  border-color: #1e293b !important;
+}
+
+/* Fix for unreadable dark text on dark surfaces */
+.dark-noc .text-slate-900,
+.dark-noc .text-slate-800 {
+  color: #f8fafc !important;
+}
+
+.dark-noc .text-slate-700,
+.dark-noc .text-slate-600 {
+  color: #cbd5e1 !important; /* Bright silver slate for high readability */
+}
+
+.dark-noc .text-slate-500,
+.dark-noc .text-slate-400 {
+  color: #94a3b8 !important; /* Visible light slate */
+}
+
+/* Fix for light background pastels inside cards */
+.dark-noc .bg-emerald-50,
+.dark-noc .bg-emerald-50\/80 {
+  background-color: #0c1527 !important;
+}
+
+.dark-noc .bg-emerald-100,
+.dark-noc .bg-emerald-100\/80 {
+  background-color: #12213d !important;
+}
+
+.dark-noc .bg-red-50,
+.dark-noc .bg-red-50\/80 {
+  background-color: #240c0c !important;
+}
+
+.dark-noc .bg-red-100,
+.dark-noc .bg-red-100\/90 {
+  background-color: #331010 !important;
+}
+
+/* High contrast text for link statuses and incident ticket callouts */
+.dark-noc .text-emerald-950,
+.dark-noc .text-emerald-900 {
+  color: #f8fafc !important;
+}
+
+.dark-noc .text-red-950,
+.dark-noc .text-red-900 {
+  color: #ffe4e6 !important;
+}
+
+.dark-noc .text-red-700 {
+  color: #38bdf8 !important; /* Crisp cyan for action buttons like Update -> */
+}
+
+.dark-noc .border-red-200 {
+  border-color: #7f1d1d !important;
+}
+
+.dark-noc .hover\:bg-slate-50:hover,
+.dark-noc .hover\:bg-slate-100:hover {
+  background-color: #14203a !important;
+}
+
+/* Dark mode inputs and forms */
+.dark-noc input:not([type='checkbox']):not([type='radio']),
+.dark-noc select,
+.dark-noc textarea {
+  background-color: #070d1a !important;
+  border-color: #27354f !important;
+  color: #f8fafc !important;
+}
+
+.dark-noc input::placeholder,
+.dark-noc textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #060b17;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+

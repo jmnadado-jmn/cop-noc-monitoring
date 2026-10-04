@@ -1,0 +1,48 @@
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Official Cathedral of Praise Manila Vector Emblem -->
+  <!-- Top-Right Ascending Flame Plume / Wing -->
+  <path
+    d="M 48 10 C 56 6, 68 14, 68 30 C 68 38, 63 45, 57 47 C 63 40, 62 22, 48 10 Z"
+    fill="#ffffff"
+  />
+
+  <!-- Sweeping Halo Ring / Crescent Arc -->
+  <path
+    d="M 50 14 A 28 28 0 1 0 76 48 C 76 43, 70 42, 68 45 A 21 21 0 1 1 50 21 Z"
+    fill="#ffffff"
+  />
+
+  <!-- Central Ascending Flame / Dove Heart -->
+  <path
+    d="M 50 23 C 58 27, 62 35, 60 42 C 58 47, 51 49, 46 45 C 41 40, 43 30, 50 23 Z"
+    fill="#ffffff"
+  />
+  <path
+    d="M 47 44 C 49 40, 53 38, 56 36 C 54 41, 52 44, 47 44 Z"
+    fill="#00227b"
+  />
+
+  <!-- Hollow Latin Cross - Horizontal Beam -->
+  <rect
+    x="4"
+    y="38.5"
+    width="92"
+    height="5"
+    rx="1"
+    stroke="#ffffff"
+    stroke-width="2.2"
+    fill="none"
+  />
+
+  <!-- Hollow Latin Cross - Vertical Shaft -->
+  <rect
+    x="47.5"
+    y="8"
+    width="5"
+    height="86"
+    rx="1"
+    stroke="#ffffff"
+    stroke-width="2.2"
+    fill="none"
+  />
+</svg>

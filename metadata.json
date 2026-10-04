@@ -1,0 +1,8 @@
+{
+  "name": "Remix NetPulse NOC — Campus Link \u0026 Incident Monitor",
+  "description": "Multi-campus network link monitoring, real-time connectivity alerts, log-autofilled incident management, automated telco provider email dispatch, and historical uptime SLA analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

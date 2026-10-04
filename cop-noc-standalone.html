@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cathedral of Praise — Multi-Campus NOC Command Center</title>
+  <meta name="description" content="Cathedral of Praise Multi-Campus Network Operations Center Wallboard &amp; Incident Tracker." />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Plus Jakarta Sans & JetBrains Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #060b17; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    @media print {
+      body * { visibility: hidden; }
+      #printableReportArea, #printableReportArea * { visibility: visible; }
+      #printableReportArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white !important;
+        color: black !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-[#060b17] text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-black">
+
+  <!-- ================= TOP HEADER NAVIGATION ================= -->
+  <header class="sticky top-0 z-40 bg-[#0a1122]/95 backdrop-blur-md border-b border-slate-800 px-4 py-2 flex items-center justify-between gap-3 text-slate-100">
+    <!-- Brand & Official COP Logo -->
+    <div class="flex items-center gap-3 shrink-0">
+      <img src="/cop-emblem-white.png" alt="Cathedral of Praise Official Emblem" class="w-8 h-8 object-contain shrink-0 drop-shadow-sm select-none" />
+      <div class="flex flex-col">
+        <span class="text-sm font-extrabold uppercase tracking-widest text-white whitespace-nowrap leading-tight">
+          CATHEDRAL OF PRAISE
+        </span>
+        <span class="text-[10px] font-mono text-cyan-400 font-semibold tracking-wider leading-tight">
+          NOC COMMAND &amp; INCIDENT MONITOR
+        </span>
+      </div>
+    </div>
+
+    <!-- Center Navigation Tabs -->
+    <nav class="hidden lg:flex items-center gap-5 text-xs font-medium text-slate-400">
+      <button class="py-1 border-b-2 border-cyan-400 text-cyan-400 font-bold">Campus Wallboard</button>
+      <button onclick="openCircuitModal()" class="py-1 border-b-2 border-transparent hover:text-slate-200">Incident Tracker</button>
+      <button onclick="openCircuitModal()" class="py-1 border-b-2 border-transparent hover:text-slate-200">Log Autofill</button>
+      <button onclick="openReportModal()" class="py-1 border-b-2 border-transparent hover:text-slate-200">Uptime SLA</button>
+      <button onclick="openReportModal()" class="py-1 border-b-2 border-transparent hover:text-slate-200">Escalations &amp; Email</button>
+    </nav>
+
+    <!-- Top Right Actions -->
+    <div class="flex items-center gap-2 shrink-0">
+      <!-- Admin Approvals Button -->
+      <button id="btnAdminApprovals" onclick="openUserModal()" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-950/80 border border-indigo-500/50 text-indigo-300 hover:bg-indigo-900/60 flex items-center gap-1.5 transition-colors shadow-sm">
+        <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+        <span class="hidden sm:inline">User Approvals</span>
+        <span id="badgePendingCount" class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950 hidden">0</span>
+      </button>
+
+      <!-- Current User Pill & Dropdown -->
+      <div class="relative">
+        <button id="btnUserPill" onclick="toggleUserDropdown()" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-200 flex items-center gap-1.5 transition-colors">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span id="labelCurrentUserName" class="font-semibold hidden sm:inline">Jeffrey</span>
+          <span id="labelCurrentUserRole" class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-indigo-500/30 text-indigo-300 border border-indigo-500/40">ADMIN</span>
+        </button>
+
+        <!-- Dropdown Menu -->
+        <div id="userDropdownMenu" class="absolute right-0 mt-1.5 w-52 rounded-xl bg-slate-900 border border-slate-700 shadow-2xl p-1 text-xs z-50 hidden space-y-1">
+          <div class="px-3 py-2 border-b border-slate-800 text-slate-400">
+            <div id="dropdownUserFullName" class="font-bold text-white truncate">Jeffrey Nadado</div>
+            <div id="dropdownUserEmail" class="text-[10px] font-mono truncate text-cyan-400">cop.jmnadado@gmail.com</div>
+          </div>
+          <button onclick="openChangePasswordModal()" class="w-full px-3 py-2 text-left text-slate-200 hover:bg-slate-800 rounded-lg flex items-center gap-2">
+            <span>🔑 Change Password</span>
+          </button>
+          <button onclick="doLogout()" class="w-full px-3 py-2 text-left text-rose-300 hover:bg-rose-950/60 rounded-lg flex items-center gap-2">
+            <span>🚪 Sign Out (Login Page)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Add Campus / Telco Button -->
+      <button onclick="openAddCampusModal()" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 hover:bg-emerald-900/60 flex items-center gap-1.5 transition-colors shadow-sm" title="Add a new campus branch or manage telco details">
+        <span>➕ Add Campus / Telco</span>
+      </button>
+
+      <!-- Export Report Button -->
+      <button onclick="openReportModal()" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-cyan-950/80 border border-cyan-500/50 text-cyan-300 hover:bg-cyan-900/60 flex items-center gap-1.5 transition-colors shadow-sm" title="Generate printable PDF brief or export CSV">
+        <span>📄 Export Report</span>
+      </button>
+
+      <!-- Mask Sensitive IDs Toggle -->
+      <button id="btnMaskIds" onclick="toggleMaskIds()" class="px-2 py-1.5 text-xs font-semibold rounded-lg border bg-emerald-950/60 text-emerald-300 border-emerald-700/60 hover:bg-emerald-900/60 flex items-center gap-1.5 whitespace-nowrap">
+        <span>Masked</span>
+      </button>
+
+      <!-- M365 Email Sync Button -->
+      <button onclick="openReportModal()" class="px-2.5 py-1.5 text-xs font-semibold text-slate-200 bg-slate-900 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-1.5 whitespace-nowrap">
+        <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+        <span class="hidden sm:inline">M365 Sync</span>
+      </button>
+
+      <!-- Record Outage Button -->
+      <button onclick="openRecordModal()" class="px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap shadow-sm shadow-indigo-600/30">
+        <span>+ Record Outage</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= NOTIFICATION BANNER ================= -->
+  <div id="noticeBanner" class="bg-indigo-950 border-b border-indigo-800 text-indigo-200 px-4 py-1.5 text-xs flex items-center justify-between hidden">
+    <span id="noticeText" class="font-mono"></span>
+    <button onclick="hideNotice()" class="underline hover:text-white">Dismiss</button>
+  </div>
+
+  <!-- ================= MAIN STATUS / KPI TOOLBAR ================= -->
+  <main class="flex-1 w-full max-w-[1600px] mx-auto px-4 py-3 space-y-3">
+    <div id="kpiBar" class="rounded-xl px-4 py-2 flex flex-col xl:flex-row xl:items-center justify-between gap-3 border bg-emerald-950/70 text-emerald-200 border-emerald-700/80 transition-colors">
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-2">
+          <span id="kpiIndicatorDot" class="w-3 h-3 rounded-full bg-emerald-400"></span>
+          <span id="kpiMainText" class="text-xs font-bold tracking-wide">ALL 17 CAMPUSES &amp; 47 LINKS OPERATIONAL (GOOD)</span>
+        </div>
+        <div class="hidden sm:flex items-center gap-2 text-xs font-mono bg-black/30 px-3 py-1 rounded-lg border border-white/10">
+          <span><strong id="kpiGoodCount" class="text-emerald-300">47</strong> Green</span>
+          <span>·</span>
+          <span><strong id="kpiRedCount" class="text-rose-400">0</strong> Red</span>
+          <span>·</span>
+          <span><strong id="kpiOpenCount" class="text-amber-300">0</strong> Open Outages</span>
+          <span>·</span>
+          <span><strong class="text-cyan-300">99.98%</strong> SLA Uptime</span>
+        </div>
+      </div>
+
+      <!-- Quick Search & Status Filter -->
+      <div class="flex items-center gap-2">
+        <input id="searchInput" type="text" oninput="renderCampuses()" placeholder="Search campus, Circuit ID, Account..." class="px-3 py-1 text-xs rounded-lg bg-[#080e1c] text-white border border-slate-700 placeholder-slate-400 font-mono focus:outline-none focus:border-cyan-500 w-64" />
+        <div class="flex items-center gap-1 p-0.5 bg-black/30 rounded-lg border border-white/10 text-xs font-semibold">
+          <button id="filterAll" onclick="setFilter('ALL')" class="px-2 py-0.5 rounded bg-white text-slate-900">All 17</button>
+          <button id="filterGreen" onclick="setFilter('GREEN')" class="px-2 py-0.5 rounded text-slate-300 hover:text-white">Green</button>
+          <button id="filterRed" onclick="setFilter('RED')" class="px-2 py-0.5 rounded text-slate-300 hover:text-white">Red</button>
+        </div>
+        <button onclick="openCircuitModal()" class="px-2.5 py-1 text-xs font-semibold bg-white/15 hover:bg-white/25 text-white border border-white/30 rounded transition-colors whitespace-nowrap">
+          Circuit IDs (47)
+        </button>
+
+        <!-- Template Density Switcher (4 Options) -->
+        <div class="flex items-center gap-0.5 p-0.5 bg-black/25 rounded-lg border border-white/10 shadow-xs">
+          <button id="tmplBtnMatrix" onclick="setStandaloneTemplate('ultra-compact')" class="px-2 py-0.5 text-xs font-semibold rounded text-white/80 hover:text-white" title="Ultra-Compact NOC Video Wall Matrix">
+            ⚡ <span class="hidden sm:inline">Matrix</span>
+          </button>
+          <button id="tmplBtnCompact" onclick="setStandaloneTemplate('compact')" class="px-2 py-0.5 text-xs font-semibold rounded bg-cyan-500 text-slate-950 font-bold" title="Standard Compact Operations">
+            📊 <span class="hidden sm:inline">Compact</span>
+          </button>
+          <button id="tmplBtnDetailed" onclick="setStandaloneTemplate('comfortable')" class="px-2 py-0.5 text-xs font-semibold rounded text-white/80 hover:text-white" title="Detailed Telemetry & Optical Power">
+            📡 <span class="hidden sm:inline">Detailed</span>
+          </button>
+          <button id="tmplBtnExec" onclick="setStandaloneTemplate('executive')" class="px-2 py-0.5 text-xs font-semibold rounded text-white/80 hover:text-white" title="Executive 30d SLA & Support Hotline">
+            📈 <span class="hidden sm:inline">Exec</span>
+          </button>
+        </div>
+
+        <!-- Arrange & Columns Button -->
+        <button onclick="openStandaloneArrangerModal()" class="px-2.5 py-1 text-xs font-semibold bg-cyan-950/80 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-500/50 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap shadow-xs" title="Arrange campus sequence or resize grid">
+          <span>📐 Arrange &amp; Resize</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ================= 17 CAMPUS WALLBOARD GRID ================= -->
+    <div id="campusGrid" class="space-y-2">
+      <!-- Generated via JavaScript -->
+    </div>
+  </main>
+
+  <!-- ================= COMPACT FOOTER ================= -->
+  <footer class="mt-auto border-t border-slate-800 bg-[#080e1c] px-4 py-2 text-slate-400 text-xs transition-colors">
+    <div class="max-w-[1600px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px]">
+      <div>
+        Cathedral of Praise Campus Network Monitoring — 17 Campuses · 47 Monitored Links (Green = Good/Restored · Red = Recorded Outage)
+      </div>
+      <div class="flex items-center gap-4 text-cyan-400">
+        <button onclick="openCircuitModal()" class="hover:text-cyan-300 underline">Circuit &amp; Account Directory (47)</button>
+        <span class="text-slate-600">·</span>
+        <button onclick="openReportModal()" class="hover:text-cyan-300 underline">Export PDF / CSV Reports</button>
+        <span class="text-slate-600">·</span>
+        <button onclick="openUserModal()" class="hover:text-cyan-300 underline">User Management &amp; Approvals</button>
+        <span class="text-slate-600">·</span>
+        <span class="text-slate-400">Admin: <strong>Jeffrey Nadado</strong></span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= FULL LOGIN GATEWAY PAGE & MODAL ================= -->
+  <div id="modalAuth" class="fixed inset-0 z-50 bg-[#060b17] p-4 overflow-y-auto hidden flex items-center justify-center">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden my-6">
+      <div class="px-6 py-5 border-b border-slate-800 bg-slate-950 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <img src="/cop-emblem-white.png" alt="Cathedral of Praise Official Emblem" class="w-9 h-9 object-contain shrink-0 drop-shadow-sm select-none" />
+          <div>
+            <div class="font-extrabold uppercase tracking-widest text-white text-base leading-tight">CATHEDRAL OF PRAISE</div>
+            <div class="text-[10px] font-mono text-cyan-400 font-semibold tracking-wider">NOC SECURE LOGIN PORTAL</div>
+          </div>
+        </div>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white p-1 text-sm" title="Close (Continue to Wallboard)">✕</button>
+      </div>
+
+      <!-- Tab Strip -->
+      <div class="flex border-b border-slate-800 bg-slate-950/60 text-xs font-semibold">
+        <button id="tabLogin" onclick="switchAuthTab('login')" class="flex-1 py-3 text-indigo-300 border-b-2 border-indigo-500">Sign In</button>
+        <button id="tabRegister" onclick="switchAuthTab('register')" class="flex-1 py-3 text-slate-400 border-b-2 border-transparent hover:text-white">Request Account</button>
+        <button id="tabForgot" onclick="switchAuthTab('forgot')" class="flex-1 py-3 text-slate-400 border-b-2 border-transparent hover:text-white">Forgot Pass?</button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <div id="authAlert" class="p-3 rounded-lg text-xs hidden"></div>
+
+        <!-- 1. SIGN IN FORM -->
+        <div id="formLogin" class="space-y-3.5">
+          <div>
+            <label class="block text-slate-300 mb-1 font-medium">Email Address</label>
+            <input id="loginEmail" type="email" placeholder="cop.jmnadado@gmail.com" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-slate-300 font-medium">Password</label>
+              <button type="button" onclick="switchAuthTab('forgot')" class="text-[11px] text-cyan-400 hover:text-cyan-300 underline">Forgot Password?</button>
+            </div>
+            <input id="loginPass" type="password" placeholder="Enter password..." class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono focus:outline-none focus:border-indigo-500" />
+          </div>
+          <button onclick="doLogin()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-lg shadow-indigo-600/30 transition-colors">Sign In to NOC Wallboard</button>
+
+          <div class="pt-2 text-center">
+            <button type="button" onclick="continueAsGuest()" class="text-slate-400 hover:text-slate-200 text-xs underline">
+              Continue as Guest (Read-Only Wallboard View) →
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. REQUEST ACCOUNT FORM -->
+        <div id="formRegister" class="space-y-3 hidden">
+          <div>
+            <label class="block text-slate-300 mb-1 font-medium">Full Name</label>
+            <input id="regName" type="text" placeholder="e.g. Bro. Nathan Reyes" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-slate-300 mb-1 font-medium">Email Address</label>
+            <input id="regEmail" type="email" placeholder="nreyes@cathedralofpraise.com.ph" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-slate-300 mb-1 font-medium">Desired Password (min 6 chars)</label>
+            <input id="regPass" type="password" placeholder="Set password..." class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-slate-300 mb-1 font-medium">Department / Campus</label>
+            <input id="regDept" type="text" placeholder="e.g. South Campus Comms" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div class="p-3 bg-amber-950/40 border border-amber-500/40 rounded-lg text-[11px] text-amber-200">
+            <strong>Admin Approval Required:</strong> Creating this account marks it <code>PENDING</code>. <strong>Jeffrey Nadado (Admin)</strong> will approve it and assign your role before you can sign in.
+          </div>
+          <button onclick="doRegister()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow transition-colors">Submit Request for Approval</button>
+        </div>
+
+        <!-- 3. FORGOT PASSWORD FORM -->
+        <div id="formForgot" class="space-y-3.5 hidden">
+          <div id="forgotStep1">
+            <p class="text-slate-400 mb-2 leading-relaxed">
+              Enter your registered Cathedral of Praise email. We will generate a secure 6-digit password reset verification code.
+            </p>
+            <div class="mb-3">
+              <label class="block text-slate-300 mb-1 font-medium">Account Email Address</label>
+              <input id="forgotEmailInput" type="email" placeholder="cop.jmnadado@gmail.com" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono focus:outline-none focus:border-cyan-500" />
+            </div>
+            <button onclick="doGenerateResetCode()" class="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg shadow transition-colors">Generate Reset Code</button>
+          </div>
+
+          <div id="forgotStep2" class="space-y-3 hidden">
+            <div class="p-3 bg-cyan-950/80 border border-cyan-500/50 rounded-lg text-cyan-200">
+              <div class="text-[11px]">Your 6-Digit Password Reset Code is:</div>
+              <div id="forgotCodeDisplay" class="text-xl font-mono font-bold tracking-widest text-cyan-300 my-1">839201</div>
+              <div class="text-[10px] text-cyan-400">Valid for 15 minutes.</div>
+            </div>
+            <div>
+              <label class="block text-slate-300 mb-1 font-medium">Enter 6-Digit Verification Code</label>
+              <input id="forgotCodeInput" type="text" placeholder="e.g. 839201" maxlength="6" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono text-center tracking-widest focus:outline-none focus:border-cyan-500" />
+            </div>
+            <div>
+              <label class="block text-slate-300 mb-1 font-medium">New Password (min 6 chars)</label>
+              <input id="forgotNewPassInput" type="password" placeholder="Enter new password..." class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono focus:outline-none focus:border-cyan-500" />
+            </div>
+            <div>
+              <label class="block text-slate-300 mb-1 font-medium">Confirm New Password</label>
+              <input id="forgotConfirmPassInput" type="password" placeholder="Repeat new password..." class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono focus:outline-none focus:border-cyan-500" />
+            </div>
+            <button onclick="doSaveNewPasswordFromForgot()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg shadow transition-colors">Save New Password &amp; Sign In</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: CHANGE PASSWORD (LOGGED IN USER) ================= -->
+  <div id="modalChangePassword" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-4 overflow-y-auto hidden flex items-center justify-center">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden my-6">
+      <div class="px-6 py-4 border-b border-slate-800 bg-slate-950 flex items-center justify-between">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          <span>🔑</span> Change Your Password
+        </h2>
+        <button onclick="closeChangePasswordModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+
+      <div class="p-6 space-y-3.5 text-xs">
+        <div id="changePassAlert" class="p-3 rounded-lg text-xs hidden"></div>
+
+        <div>
+          <label class="block text-slate-300 mb-1 font-medium">Current Password *</label>
+          <input id="cpCurrentPass" type="password" placeholder="Enter current password..." class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono focus:outline-none focus:border-indigo-500" />
+        </div>
+        <div>
+          <label class="block text-slate-300 mb-1 font-medium">New Password (min 6 chars) *</label>
+          <input id="cpNewPass" type="password" placeholder="Choose a new strong password..." class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono focus:outline-none focus:border-indigo-500" />
+        </div>
+        <div>
+          <label class="block text-slate-300 mb-1 font-medium">Confirm New Password *</label>
+          <input id="cpConfirmPass" type="password" placeholder="Confirm new password..." class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono focus:outline-none focus:border-indigo-500" />
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button onclick="closeChangePasswordModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg">Cancel</button>
+          <button onclick="submitChangePassword()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow">Update Password</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: REPORT EXPORT CENTER ================= -->
+  <div id="modalReport" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-4 overflow-y-auto hidden flex items-center justify-center">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden my-6 flex flex-col max-h-[92vh]">
+      <div class="px-6 py-4 border-b border-slate-800 bg-slate-950 flex items-center justify-between shrink-0">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            📄 Executive SLA &amp; NOC Audit Report Center
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">PRINT &amp; CSV</span>
+          </h2>
+          <p class="text-xs text-slate-400">Export printable executive reports, circuit sheets, and outage incident history.</p>
+        </div>
+        <button onclick="closeReportModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+
+      <div class="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-950 p-4 rounded-xl border border-slate-800">
+          <div>
+            <div class="font-bold text-white text-sm">Downloadable CSV Spreadsheets</div>
+            <div class="text-slate-400 text-xs">Export data to Excel or Google Sheets for provider SLA reviews.</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="exportCircuitsCsv()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg flex items-center gap-1.5 shadow">
+              <span>📥 Export 47 Circuits (.CSV)</span>
+            </button>
+            <button onclick="exportIncidentsCsv()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg flex items-center gap-1.5 shadow">
+              <span>📥 Export Incidents (.CSV)</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-2">
+          <span class="font-bold text-white text-sm">Executive Brief Preview (Printable PDF Format)</span>
+          <button onclick="window.print()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg flex items-center gap-2 shadow-lg shadow-cyan-600/30">
+            <span>🖨️ Print / Save as PDF</span>
+          </button>
+        </div>
+
+        <!-- Printable Document Area -->
+        <div id="printableReportArea" class="bg-white text-slate-900 rounded-xl p-8 shadow-inner border border-slate-200 space-y-6">
+          <div class="border-b-2 border-slate-900 pb-4 flex items-center justify-between">
+            <div>
+              <h1 class="text-lg font-black uppercase tracking-tight text-slate-900 leading-tight">
+                Cathedral of Praise
+              </h1>
+              <div class="text-xs font-bold text-indigo-700 tracking-wider">
+                NETWORK OPERATIONS CENTER — EXECUTIVE MULTI-CAMPUS SLA AUDIT
+              </div>
+              <div class="text-[11px] text-slate-500">
+                350 Taft Avenue, Ermita, Manila, Philippines
+              </div>
+            </div>
+            <div class="text-right text-xs">
+              <div class="font-bold text-slate-900">DATE: <span id="reportPrintDate">Oct 2, 2026</span></div>
+              <div class="text-[11px] text-emerald-700 font-bold font-mono">STATUS: OPERATIONAL AUDIT</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-4 gap-3 text-center">
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <div class="text-[10px] font-bold text-slate-500 uppercase">Campuses</div>
+              <div class="text-xl font-black text-slate-900">17</div>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <div class="text-[10px] font-bold text-slate-500 uppercase">Monitored Links</div>
+              <div class="text-xl font-black text-slate-900">47</div>
+            </div>
+            <div class="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+              <div class="text-[10px] font-bold text-emerald-800 uppercase">Operational (Green)</div>
+              <div id="reportGoodCount" class="text-xl font-black text-emerald-700">47</div>
+            </div>
+            <div class="p-3 bg-rose-50 rounded-lg border border-rose-200">
+              <div class="text-[10px] font-bold text-rose-800 uppercase">Recorded Outages</div>
+              <div id="reportRedCount" class="text-xl font-black text-rose-700">0</div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 mb-2">17-Campus Network Matrix</h3>
+            <div id="reportCampusMatrixGrid" class="grid grid-cols-3 gap-2 text-xs">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <div class="pt-6 border-t border-slate-300 grid grid-cols-2 gap-8 text-[11px] text-slate-600">
+            <div>
+              <div class="font-bold text-slate-800">Prepared &amp; Audited By:</div>
+              <div class="mt-4 border-b border-slate-400 w-48"></div>
+              <div id="reportPreparedByName" class="mt-1 font-semibold text-slate-900">Jeffrey Nadado</div>
+              <div class="text-slate-500">Duty NOC Administrator / Operations Lead</div>
+            </div>
+            <div>
+              <div class="font-bold text-slate-800">Approved for Cathedral of Praise:</div>
+              <div class="mt-4 border-b border-slate-400 w-48"></div>
+              <div class="mt-1 font-semibold text-slate-900">Jeffrey Nadado</div>
+              <div class="text-slate-500">Lead Systems &amp; Network Engineer</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: ADMIN USER MANAGEMENT (RBAC) ================= -->
+  <div id="modalUserMgmt" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-4 overflow-y-auto hidden flex items-center justify-center">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden my-6 flex flex-col max-h-[90vh]">
+      <div class="px-6 py-4 border-b border-slate-800 bg-slate-950 flex items-center justify-between shrink-0">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            NOC User Directory &amp; Access Control (RBAC)
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">ADMIN ONLY</span>
+          </h2>
+          <p class="text-xs text-slate-400">Admin: <strong>Jeffrey Nadado</strong> — Approve staff registration requests, suspend unauthorized users, and assign roles.</p>
+        </div>
+        <button onclick="closeUserModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+
+      <div class="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
+        <div class="flex items-center justify-between gap-3">
+          <div class="text-slate-300 font-semibold text-sm">Registered Accounts (<span id="userCount">1</span>)</div>
+          <button onclick="toggleAddUserForm()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg text-xs">+ Provision User</button>
+        </div>
+
+        <!-- Add User Inline Form -->
+        <div id="formAddUserInline" class="p-4 bg-slate-950 border border-indigo-500/40 rounded-xl space-y-3 hidden">
+          <div class="font-bold text-indigo-300">Add Pre-Approved User</div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <input id="newUserName" type="text" placeholder="Full Name" class="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-white" />
+            <input id="newUserEmail" type="email" placeholder="Email Address" class="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono" />
+            <input id="newUserPass" type="password" placeholder="Password" class="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono" />
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <select id="newUserRole" class="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-white">
+              <option value="OPERATOR">Role: OPERATOR (Edit &amp; Outage Dispatch)</option>
+              <option value="ADMIN">Role: ADMIN (Full Control)</option>
+              <option value="VIEWER">Role: VIEWER (Read-Only)</option>
+            </select>
+            <input id="newUserDept" type="text" placeholder="Department" class="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-white" />
+          </div>
+          <div class="flex justify-end gap-2">
+            <button onclick="toggleAddUserForm()" class="px-3 py-1 bg-slate-800 text-slate-300 rounded">Cancel</button>
+            <button onclick="submitNewUser()" class="px-4 py-1 bg-indigo-600 text-white font-semibold rounded">Save User</button>
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="border border-slate-800 rounded-xl overflow-hidden bg-slate-950/80">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="border-b border-slate-800 bg-slate-950 text-slate-400 text-[10px] uppercase font-mono">
+                <th class="py-2.5 px-4">User / Email</th>
+                <th class="py-2.5 px-4">Role</th>
+                <th class="py-2.5 px-4">Status</th>
+                <th class="py-2.5 px-4">Department</th>
+                <th class="py-2.5 px-4 text-right">Admin Actions</th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody" class="divide-y divide-slate-800/80 text-xs">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= CAMPUS & TELCO NETWORK MANAGEMENT MODAL ================= -->
+  <div id="modalCampusTelco" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-4 overflow-y-auto hidden flex items-center justify-center">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden my-6 flex flex-col">
+      <div class="px-5 py-4 border-b border-slate-800 bg-slate-950 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">🌐</span>
+          <div>
+            <div class="font-bold text-white text-sm sm:text-base">Campus &amp; Telco Network Management</div>
+            <div class="text-[10px] font-mono text-cyan-400">ADD BRANCHES / RECONFIGURE TELCO CIRCUITS &amp; CIDS</div>
+          </div>
+        </div>
+        <button onclick="closeCampusTelcoModal()" class="text-slate-400 hover:text-white p-1 text-sm">✕</button>
+      </div>
+
+      <!-- Tab Strip -->
+      <div class="flex border-b border-slate-800 bg-slate-950/60 text-xs font-semibold px-5 pt-2 gap-2">
+        <button id="tabTelcoEdit" onclick="switchTelcoTab('edit')" class="pb-2.5 px-3 border-b-2 border-cyan-400 text-cyan-400 font-bold">Edit Telco &amp; Circuits</button>
+        <button id="tabTelcoAdd" onclick="switchTelcoTab('add')" class="pb-2.5 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200">➕ Add New Campus Branch</button>
+      </div>
+
+      <!-- Content Area: Edit Existing Campus -->
+      <div id="telcoTabContentEdit" class="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+        <div class="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex-1">
+            <label class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Select Campus / Branch:</label>
+            <select id="selectTelcoCampus" onchange="renderTelcoEditForm()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-white">
+            </select>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button onclick="promptAddCircuitToCampus()" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-semibold hover:bg-cyan-500/30 transition-colors">
+              ➕ Add Circuit
+            </button>
+            <button onclick="deleteCurrentCampus()" class="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 text-xs font-semibold hover:bg-red-500/20 transition-colors">
+              🗑️ Delete Branch
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Circuits List -->
+        <div id="telcoCircuitsList" class="space-y-3">
+        </div>
+      </div>
+
+      <!-- Content Area: Add New Campus Branch -->
+      <div id="telcoTabContentAdd" class="p-5 space-y-4 max-h-[70vh] overflow-y-auto hidden">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Campus Name *</label>
+          <input type="text" id="newBranchName" placeholder="e.g. Iloilo Campus, Tagaytay Campus" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Region</label>
+            <input type="text" id="newBranchRegion" placeholder="e.g. Western Visayas" value="Regional Sanctuary" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Primary Telco Provider</label>
+            <select id="newBranchTelco" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+              <option value="Eastern Communications">Eastern Communications</option>
+              <option value="Converge ICT">Converge ICT</option>
+              <option value="PLDT Enterprise">PLDT Enterprise</option>
+              <option value="Starlink Enterprise">Starlink Enterprise</option>
+              <option value="Globe Telecom">Globe Telecom</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Circuit ID (CID)</label>
+            <input type="text" id="newBranchCid" placeholder="e.g. ETPI-DIA-8821 / MC12984" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white font-mono" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Account Number</label>
+            <input type="text" id="newBranchAcct" placeholder="e.g. 657871060 or N/A (Circuit ID)" value="N/A (Circuit ID)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white font-mono" />
+          </div>
+        </div>
+        <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+          <button onclick="closeCampusTelcoModal()" class="px-4 py-2 rounded-lg border border-slate-700 text-slate-300 text-xs">Cancel</button>
+          <button onclick="saveNewCampusBranch()" class="px-5 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs">Create Campus Branch</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: RECORD OUTAGE ================= -->
+  <div id="modalRecord" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-4 overflow-y-auto hidden flex items-center justify-center">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden my-6">
+      <div class="px-6 py-4 border-b border-slate-800 bg-slate-950 flex items-center justify-between">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+          Record Campus Link Outage
+        </h2>
+        <button onclick="closeRecordModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+
+      <div class="p-6 space-y-3.5 text-xs">
+        <div>
+          <label class="block text-slate-300 mb-1 font-medium">Select Campus Link *</label>
+          <select id="recordLinkSelect" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-300 mb-1 font-medium">Telco Trouble Ticket # / Reference</label>
+          <input id="recordTelcoRef" type="text" placeholder="e.g. PLDT-IN-14408221 / ETPI-TKT-9921" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono" />
+        </div>
+        <div>
+          <label class="block text-slate-300 mb-1 font-medium">Problem Summary *</label>
+          <input id="recordProblem" type="text" value="Fiber Cut / LOS — BGP Session Down & Packet Loss 100%" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white" />
+        </div>
+        <div class="p-3 bg-rose-950/40 border border-rose-600/50 rounded-lg text-rose-200 text-[11px]">
+          Logging this outage marks the campus link <strong>RED (DOWN)</strong> on the wallboard.
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button onclick="closeRecordModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg">Cancel</button>
+          <button onclick="submitOutageRecord()" class="px-5 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg">Confirm &amp; Mark RED</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: CIRCUIT DIRECTORY ================= -->
+  <div id="modalCircuit" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-4 overflow-y-auto hidden flex items-center justify-center">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden my-6 flex flex-col max-h-[90vh]">
+      <div class="px-6 py-4 border-b border-slate-800 bg-slate-950 flex items-center justify-between shrink-0">
+        <div>
+          <h2 class="text-base font-bold text-white">Circuit &amp; Account Number Directory (47 Links)</h2>
+          <p class="text-xs text-slate-400">All 17 Cathedral of Praise Campuses, Metro-E Transports, Dedicated Internet &amp; Starlink Backup.</p>
+        </div>
+        <button onclick="closeCircuitModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+
+      <div class="p-4 overflow-y-auto flex-1 text-xs">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="border-b border-slate-800 bg-slate-950 text-slate-400 text-[10px] font-mono uppercase">
+              <th class="py-2.5 px-4">Campus</th>
+              <th class="py-2.5 px-4">Link Name</th>
+              <th class="py-2.5 px-4">Circuit ID</th>
+              <th class="py-2.5 px-4">Account Number</th>
+              <th class="py-2.5 px-4">Provider</th>
+            </tr>
+          </thead>
+          <tbody id="circuitTableBody" class="divide-y divide-slate-800/80 font-mono text-xs text-slate-200">
+            <!-- Populated via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= APPLICATION LOGIC & STORE ================= -->
+  <script>
+    // 17 Cathedral of Praise Campuses & 47 Links Definition
+    const CAMPUSES = [
+      {
+        name: 'Main Campus', region: 'Metro Manila (Taft Ave)',
+        links: [
+          { id: 'main-pdes', name: 'Eastern Internet PDES', cid: 'ETPI-DIA-3671', acct: 'N/A (Circuit ID)', provider: 'Eastern Communications', status: 'Operational' },
+          { id: 'main-coplc', name: 'Eastern Internet COPLC', cid: 'ETPI-DIA-7111', acct: 'N/A (Circuit ID)', provider: 'Eastern Communications', status: 'Operational' },
+          { id: 'main-unifi', name: 'Eastern Internet UNIFI', cid: 'ETPI-DIA-7171', acct: 'N/A (Circuit ID)', provider: 'Eastern Communications', status: 'Operational' },
+          { id: 'main-dia', name: 'Eastern Internet DIA', cid: 'ETPI-DIA-0683', acct: 'N/A (Circuit ID)', provider: 'Eastern Communications', status: 'Operational' },
+          { id: 'main-converge', name: 'Converge Internet', cid: 'CNV-DIA-2984', acct: 'N/A (Circuit ID)', provider: 'Converge ICT', status: 'Operational' }
+        ]
+      },
+      {
+        name: 'South Campus', region: 'Metro Manila South',
+        links: [
+          { id: 'south-east-trans', name: 'Eastern Transport', cid: 'ETPI-METROE-5822', acct: 'N/A (Circuit ID)', provider: 'Eastern Communications', status: 'Operational' },
+          { id: 'south-east-net', name: 'Eastern Internet', cid: 'ETPI-DIA-3671', acct: 'N/A (Circuit ID)', provider: 'Eastern Communications', status: 'Operational' },
+          { id: 'south-cnv-trans', name: 'Converge Transport', cid: 'CNV-METROE-3615', acct: 'N/A (Circuit ID)', provider: 'Converge ICT', status: 'Operational' },
+          { id: 'south-cnv-dia', name: 'Converge DIA', cid: 'CNV-DIA-9487', acct: 'N/A (Circuit ID)', provider: 'Converge ICT', status: 'Operational' },
+          { id: 'south-cnv-coplc', name: 'Converge COPLC', cid: 'CNV-DIA-5201', acct: 'N/A (Circuit ID)', provider: 'Converge ICT', status: 'Operational' },
+          { id: 'south-starlink', name: 'Starlink', cid: 'STARLINK-SOUTH', acct: 'Starlink', provider: 'Starlink Enterprise', status: 'Operational' }
+        ]
+      },
+      {
+        name: 'East Campus', region: 'Metro Manila East',
+        links: [
+          { id: 'east-trans', name: 'Eastern Transport', cid: 'ETPI-METROE-3292', acct: 'N/A (Circuit ID)', provider: 'Eastern Communications', status: 'Operational' },
+          { id: 'east-cnv-trans', name: 'Converge Transport', cid: 'CNV-METROE-3576', acct: 'N/A (Circuit ID)', provider: 'Converge ICT', status: 'Operational' },
+          { id: 'east-cnv-net', name: 'Converge Internet', cid: 'CNV-DIA-6608', acct: 'N/A (Circuit ID)', provider: 'Converge ICT', status: 'Operational' }
+        ]
+      },
+      {
+        name: 'North Campus', region: 'Metro Manila North',
+        links: [
+          { id: 'north-trans', name: 'Eastern Transport', cid: 'ETPI-METROE-1857', acct: 'N/A (Circuit ID)', provider: 'Eastern Communications', status: 'Operational' },
+          { id: 'north-cnv-trans', name: 'Converge Transport', cid: 'CNV-METROE-0926', acct: 'N/A (Circuit ID)', provider: 'Converge ICT', status: 'Operational' }
+        ]
+      },
+      {
+        name: 'Santa Rosa Campus', region: 'Laguna (South Luzon)',
+        links: [
+          { id: 'sr-trans', name: 'Eastern Transport', cid: 'ETPI-METROE-2657', acct: 'N/A (Circuit ID)', provider: 'Eastern Communications', status: 'Operational' },
+          { id: 'sr-pldt', name: 'PLDT Internet', cid: 'PLDT-DSL-SR01', acct: '0288111060', provider: 'PLDT Enterprise', status: 'Operational' },
+          { id: 'sr-starlink', name: 'Starlink', cid: 'STARLINK-SR', acct: 'Starlink', provider: 'Starlink Enterprise', status: 'Operational' }
+        ]
+      },
+      {
+        name: 'Naic Campus', region: 'Cavite West',
+        links: [
+          { id: 'naic-trans', name: 'Eastern Transport', cid: 'ETPI-METROE-1365', acct: 'N/A (Circuit ID)', provider: 'Eastern Communications', status: 'Operational' },
+          { id: 'naic-net', name: 'Eastern Internet', cid: 'ETPI-DIA-8221', acct: 'N/A (Circuit ID)', provider: 'Eastern Communications', status: 'Operational' },
+          { id: 'naic-starlink', name: 'Starlink Internet', cid: 'STARLINK-NAIC', acct: 'Starlink', provider: 'Starlink Enterprise', status: 'Operational' }
+        ]
+      },
+      {
+        name: 'Kawit Campus', region: 'Cavite North',
+        links: [
+          { id: 'kawit-trans', name: 'Eastern Transport', cid: 'ETPI-METROE-1961', acct: 'N/A (Circuit ID)', provider: 'Eastern Communications', status: 'Operational' },
+          { id: 'kawit-pldt', name: 'PLDT Internet', cid: 'PLDT-FBR-KW01', acct: '0288224368', provider: 'PLDT Enterprise', status: 'Operational' },
+          { id: 'kawit-starlink', name: 'Starlink Internet', cid: 'STARLINK-KAWIT', acct: 'Starlink', provider: 'Starlink Enterprise', status: 'Operational' }
+        ]
+      },
+      {
+        name: 'Bulacan Campus', region: 'Central Luzon (Bulacan)',
+        links: [
+          { id: 'bul-cnv', name: 'Converge Transport', cid: 'CNV-METROE-0532', acct: 'N/A (Circuit ID)', provider: 'Converge ICT', status: 'Operational' },
+          { id: 'bul-pldt', name: 'PLDT Internet', cid: 'PLDT-FBR-BUL01', acct: '0447918550', provider: 'PLDT Enterprise', status: 'Operational' },
+          { id: 'bul-starlink', name: 'Starlink Internet', cid: 'STARLINK-BULACAN', acct: 'Starlink', provider: 'Starlink Enterprise', status: 'Operational' }
+        ]
+      },
+      {
+        name: 'Pampanga Campus', region: 'Central Luzon (Pampanga)',
+        links: [
+          { id: 'pam-cnv', name: 'Converge Transport', cid: 'CNV-METROE-3106', acct: 'N/A (Circuit ID)', provider: 'Converge ICT', status: 'Operational' },
+          { id: 'pam-pldt', name: 'PLDT Internet', cid: 'PLDT-FBR-PAM01', acct: '0459618577', provider: 'PLDT Enterprise', status: 'Operational' },
+          { id: 'pam-starlink', name: 'Starlink Internet', cid: 'STARLINK-PAMPANGA', acct: 'Starlink', provider: 'Starlink Enterprise', status: 'Operational' }
+        ]
+      },
+      {
+        name: 'Cainta Campus', region: 'Rizal Province',
+        links: [
+          { id: 'cainta-trans', name: 'Eastern Transport', cid: 'ETPI-METROE-2264', acct: 'N/A (Circuit ID)', provider: 'Eastern Communications', status: 'Operational' },
+          { id: 'cainta-pldt', name: 'PLDT Internet', cid: 'PLDT-FBR-CNT01', acct: '0286556827', provider: 'PLDT Enterprise', status: 'Operational' }
+        ]
+      },
+      {
+        name: 'Cebu', region: 'Visayas (Cebu City)',
+        links: [
+          { id: 'cebu-pldt', name: 'PLDT Internet', cid: 'PLDT-CEB-01', acct: '0322546581', provider: 'PLDT Enterprise', status: 'Operational' },
+          { id: 'cebu-starlink', name: 'Starlink Internet', cid: 'STARLINK-CEBU', acct: 'Starlink', provider: 'Starlink Enterprise', status: 'Operational' }
+        ]
+      },
+      {
+        name: 'Davao', region: 'Mindanao (Davao City)',
+        links: [
+          { id: 'davao-pldt', name: 'PLDT Internet', cid: 'PLDT-DVO-01', acct: '0822216563', provider: 'PLDT Enterprise', status: 'Operational' },
+          { id: 'davao-starlink', name: 'Starlink Internet', cid: 'STARLINK-DAVAO', acct: 'Starlink', provider: 'Starlink Enterprise', status: 'Operational' }
+        ]
+      },
+      {
+        name: 'Laoag', region: 'Northern Luzon (Ilocos Norte)',
+        links: [
+          { id: 'laoag-pldt', name: 'PLDT Internet', cid: 'PLDT-LAO-01', acct: '0777723756', provider: 'PLDT Enterprise', status: 'Operational' },
+          { id: 'laoag-starlink', name: 'Starlink Internet', cid: 'STARLINK-LAOAG', acct: 'Starlink', provider: 'Starlink Enterprise', status: 'Operational' }
+        ]
+      },
+      {
+        name: 'Lipa', region: 'Batangas (South Luzon)',
+        links: [
+          { id: 'lipa-pldt', name: 'PLDT Internet', cid: 'PLDT-LIP-01', acct: '0437560277', provider: 'PLDT Enterprise', status: 'Operational' },
+          { id: 'lipa-starlink', name: 'Starlink Internet', cid: 'STARLINK-LIPA', acct: 'Starlink', provider: 'Starlink Enterprise', status: 'Operational' }
+        ]
+      },
+      {
+        name: 'Batangas', region: 'Batangas City (South Luzon)',
+        links: [
+          { id: 'bat-pldt', name: 'PLDT Internet', cid: 'PLDT-BAT-01', acct: '0437233837', provider: 'PLDT Enterprise', status: 'Operational' },
+          { id: 'bat-starlink', name: 'Starlink Internet', cid: 'STARLINK-BATANGAS', acct: 'Starlink', provider: 'Starlink Enterprise', status: 'Operational' }
+        ]
+      },
+      {
+        name: 'Isabela', region: 'Cagayan Valley (Isabela)',
+        links: [
+          { id: 'isa-pldt', name: 'PLDT Internet', cid: 'PLDT-ISA-01', acct: '0786525332', provider: 'PLDT Enterprise', status: 'Operational' },
+          { id: 'isa-starlink', name: 'Starlink Internet', cid: 'STARLINK-ISABELA', acct: 'Starlink', provider: 'Starlink Enterprise', status: 'Operational' }
+        ]
+      },
+      {
+        name: 'Angel One', region: 'Angel One Sanctuary & Hub',
+        links: [
+          { id: 'ao-pldt', name: 'PLDT Internet', cid: 'PLDT-AO-01', acct: '0288214975', provider: 'PLDT Enterprise', status: 'Operational' },
+          { id: 'ao-starlink', name: 'Starlink', cid: 'STARLINK-ANGELONE', acct: 'Starlink', provider: 'Starlink Enterprise', status: 'Operational' }
+        ]
+      }
+    ];
+
+    // Local Storage State
+    let users = JSON.parse(localStorage.getItem('cop_gh_users')) || [
+      {
+        id: 'user-admin-1',
+        name: 'Jeffrey Nadado',
+        email: 'cop.jmnadado@gmail.com',
+        role: 'ADMIN',
+        status: 'ACTIVE',
+        department: 'Cathedral of Praise Network Operations Lead',
+        password: 'Admin@COP2026!'
+      }
+    ];
+
+    let currentUser = JSON.parse(localStorage.getItem('cop_gh_cur_user')) || null;
+    let isGuest = localStorage.getItem('cop_gh_guest') === 'true';
+    let outages = JSON.parse(localStorage.getItem('cop_gh_outages')) || {};
+    let maskSensitiveIds = true;
+    let currentFilter = 'ALL';
+    let currentResetCode = null;
+    let standaloneTemplateMode = localStorage.getItem('cop_gh_template_mode') || 'compact';
+
+    function setStandaloneTemplate(mode) {
+      standaloneTemplateMode = mode;
+      localStorage.setItem('cop_gh_template_mode', mode);
+
+      const btns = {
+        'ultra-compact': document.getElementById('tmplBtnMatrix'),
+        'compact': document.getElementById('tmplBtnCompact'),
+        'comfortable': document.getElementById('tmplBtnDetailed'),
+        'executive': document.getElementById('tmplBtnExec')
+      };
+
+      Object.keys(btns).forEach(m => {
+        if (btns[m]) {
+          btns[m].className = m === mode
+            ? 'px-2 py-0.5 text-xs font-semibold rounded bg-cyan-500 text-slate-950 font-bold'
+            : 'px-2 py-0.5 text-xs font-semibold rounded text-white/80 hover:text-white';
+        }
+      });
+
+      renderCampuses();
+      showNotice(`Switched to "${mode.toUpperCase()}" template view.`);
+    }
+
+    function openStandaloneArrangerModal() {
+      openEditCampusTelcoModal();
+    }
+
+    function saveState() {
+      localStorage.setItem('cop_gh_users', JSON.stringify(users));
+      if (currentUser) {
+        localStorage.setItem('cop_gh_cur_user', JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem('cop_gh_cur_user');
+      }
+      localStorage.setItem('cop_gh_outages', JSON.stringify(outages));
+    }
+
+    function showNotice(msg) {
+      const banner = document.getElementById('noticeBanner');
+      document.getElementById('noticeText').innerText = msg;
+      banner.classList.remove('hidden');
+      setTimeout(() => banner.classList.add('hidden'), 5000);
+    }
+    function hideNotice() {
+      document.getElementById('noticeBanner').classList.add('hidden');
+    }
+
+    function toggleMaskIds() {
+      maskSensitiveIds = !maskSensitiveIds;
+      document.getElementById('btnMaskIds').innerHTML = maskSensitiveIds ? '<span>Masked</span>' : '<span>Visible</span>';
+      renderCampuses();
+    }
+
+    function maskValue(val) {
+      if (!maskSensitiveIds) return val;
+      const clean = val.trim();
+      if (clean.length <= 4) return '••••';
+      return '••••' + clean.slice(-4);
+    }
+
+    function toggleUserDropdown() {
+      document.getElementById('userDropdownMenu').classList.toggle('hidden');
+    }
+
+    // Render Individual Campus Card
+    function renderCampusCard(c) {
+      let campusDown = 0;
+      c.links.forEach(l => {
+        if (outages[l.id]) campusDown++;
+      });
+
+      const isCampusDown = campusDown > 0;
+      const borderClass = isCampusDown ? 'border-red-600 bg-[#190909]' : 'border-emerald-600/50 bg-[#071322]';
+      const headerClass = isCampusDown ? 'bg-rose-950/90 text-rose-100 border-rose-800' : 'bg-[#091b2c] text-emerald-100 border-emerald-900/60';
+      const headerStatus = isCampusDown ? `${campusDown} RED` : `GOOD (${c.links.length}/${c.links.length})`;
+
+      let linksHtml = '';
+      c.links.forEach(l => {
+        const isDown = Boolean(outages[l.id]);
+        const hasPldtAcct = l.acct && l.acct !== 'N/A (Circuit ID)' && l.acct !== 'Starlink';
+        const idLabel = hasPldtAcct ? `Acct #${maskValue(l.acct)}` : (l.acct === 'Starlink' ? 'Starlink' : `CID: ${maskValue(l.cid)}`);
+        const rowBg = isDown ? 'bg-[#220a0a] hover:bg-[#2d0e0e]' : 'bg-[#081220] hover:bg-[#0d1d33]';
+        const linkTextColor = isDown ? 'text-rose-100' : 'text-slate-100';
+        const idTextColor = isDown ? 'text-amber-300' : 'text-cyan-400';
+        const dotColor = isDown ? 'bg-red-500 animate-pulse shadow-sm shadow-red-500/50' : 'bg-emerald-400 shadow-sm shadow-emerald-400/50';
+        const badge = isDown 
+          ? '<span class="px-1.5 py-0.2 text-[9px] font-mono font-bold rounded bg-red-600 text-white animate-pulse">RED</span>' 
+          : '<span class="px-1.5 py-0.2 text-[9px] font-mono font-bold rounded bg-emerald-600 text-white">GOOD</span>';
+
+        linksHtml += `
+          <div onclick="toggleLinkOutage('${l.id}', '${c.name}', '${l.name}')" class="px-2.5 py-1 cursor-pointer transition-colors ${rowBg}">
+            <div class="flex items-center justify-between gap-1.5">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="w-2 h-2 rounded-full shrink-0 ${dotColor}"></span>
+                <span class="text-xs font-bold truncate ${linkTextColor}">${l.name}</span>
+                <span class="text-[10px] font-mono font-semibold truncate ${idTextColor}">${idLabel}</span>
+              </div>
+              <div class="shrink-0">${badge}</div>
+            </div>
+        `;
+
+        if (isDown) {
+          const out = outages[l.id];
+          linksHtml += `
+            <div class="mt-1 pt-1 border-t border-rose-800/60 flex items-center justify-between gap-1 text-[10px] text-rose-200">
+              <div class="truncate font-medium">
+                <span class="font-mono font-bold text-amber-300">${out.ticket}</span>
+                <span class="text-slate-400">(${out.telcoRef}):</span>
+                <span class="text-rose-100">${out.problem}</span>
+              </div>
+              <span class="font-bold underline text-cyan-400 shrink-0">Restore →</span>
+            </div>
+          `;
+        }
+
+        linksHtml += `</div>`;
+      });
+
+      return `
+        <div class="rounded-xl border overflow-hidden flex flex-col shadow ${borderClass}">
+          <div class="px-2.5 py-1 flex items-center justify-between border-b ${headerClass}">
+            <div class="flex items-baseline gap-1.5 min-w-0">
+              <h3 class="text-xs font-bold truncate text-white">${c.name}</h3>
+              <span class="text-[10px] truncate text-slate-400">${c.region}</span>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0 ml-1">
+              <button onclick="event.stopPropagation(); openEditCampusTelcoModal('${c.name}')" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-black/30 hover:bg-black/50 text-cyan-300 border border-cyan-500/30 transition-colors" title="Edit telco details or add circuits">
+                ⚙️ Telco
+              </button>
+              <div class="text-right font-mono text-[10px] font-bold ${isCampusDown ? 'text-rose-300' : 'text-emerald-300'}">${headerStatus}</div>
+            </div>
+          </div>
+          <div class="divide-y divide-slate-800/80 flex-1">${linksHtml}</div>
+        </div>
+      `;
+    }
+
+    // Render Campus Cards in 5 layers (3-3-3-4-4) to fit all 17 campuses without scrolling
+    function renderCampuses() {
+      const grid = document.getElementById('campusGrid');
+      const search = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+      let totalGood = 0;
+      let totalRed = 0;
+
+      // Count stats
+      CAMPUSES.forEach(c => {
+        c.links.forEach(l => {
+          if (outages[l.id]) totalRed++; else totalGood++;
+        });
+      });
+
+      // Filter checker
+      const matchesSearchAndFilter = (c) => {
+        let campusDown = 0;
+        c.links.forEach(l => {
+          if (outages[l.id]) campusDown++;
+        });
+        if (currentFilter === 'GREEN' && campusDown > 0) return false;
+        if (currentFilter === 'RED' && campusDown === 0) return false;
+        if (search) {
+          const matched = c.name.toLowerCase().includes(search) ||
+                          c.region.toLowerCase().includes(search) ||
+                          c.links.some(l => l.name.toLowerCase().includes(search) || l.cid.toLowerCase().includes(search) || l.acct.toLowerCase().includes(search));
+          if (!matched) return false;
+        }
+        return true;
+      };
+
+      // Split into 5 layers as in the screenshot
+      const row1Campuses = CAMPUSES.slice(0, 3).filter(matchesSearchAndFilter); // Main, South, East (3 cols)
+      const row2Campuses = CAMPUSES.slice(3, 6).filter(matchesSearchAndFilter); // North, Santa Rosa, Naic (3 cols)
+      const row3Campuses = CAMPUSES.slice(6, 9).filter(matchesSearchAndFilter); // Kawit, Bulacan, Pampanga (3 cols)
+      const row4Campuses = CAMPUSES.slice(9, 13).filter(matchesSearchAndFilter); // Cainta, Cebu, Davao, Laoag (4 cols)
+      const row5Campuses = CAMPUSES.slice(13, 17).filter(matchesSearchAndFilter); // Lipa, Batangas, Isabela, Angel One (4 cols)
+
+      let html = '';
+
+      if (row1Campuses.length > 0) {
+        html += `<div class="grid grid-cols-1 md:grid-cols-3 gap-2">${row1Campuses.map(renderCampusCard).join('')}</div>`;
+      }
+      if (row2Campuses.length > 0) {
+        html += `<div class="grid grid-cols-1 md:grid-cols-3 gap-2">${row2Campuses.map(renderCampusCard).join('')}</div>`;
+      }
+      if (row3Campuses.length > 0) {
+        html += `<div class="grid grid-cols-1 md:grid-cols-3 gap-2">${row3Campuses.map(renderCampusCard).join('')}</div>`;
+      }
+      if (row4Campuses.length > 0) {
+        html += `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">${row4Campuses.map(renderCampusCard).join('')}</div>`;
+      }
+      if (row5Campuses.length > 0) {
+        html += `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">${row5Campuses.map(renderCampusCard).join('')}</div>`;
+      }
+
+      if (!html) {
+        html = `<div class="p-8 text-center text-slate-400 font-mono text-xs">No campuses match your search/filter criteria.</div>`;
+      }
+
+      grid.innerHTML = html;
+
+      // Update KPI
+      document.getElementById('kpiGoodCount').innerText = totalGood;
+      document.getElementById('kpiRedCount').innerText = totalRed;
+      document.getElementById('kpiOpenCount').innerText = totalRed;
+
+      const kpiBar = document.getElementById('kpiBar');
+      const dot = document.getElementById('kpiIndicatorDot');
+      const mainText = document.getElementById('kpiMainText');
+
+      if (totalRed > 0) {
+        kpiBar.className = 'rounded-xl px-3.5 py-1.5 flex flex-col xl:flex-row xl:items-center justify-between gap-2 border bg-rose-950/80 text-rose-200 border-rose-700/80 transition-colors';
+        dot.className = 'w-3 h-3 rounded-full bg-red-500 animate-pulse';
+        mainText.innerText = `ALERT: ${totalRed} LINK(S) CURRENTLY RED (OUTAGE)`;
+      } else {
+        kpiBar.className = 'rounded-xl px-3.5 py-1.5 flex flex-col xl:flex-row xl:items-center justify-between gap-2 border bg-emerald-950/70 text-emerald-200 border-emerald-700/80 transition-colors';
+        dot.className = 'w-3 h-3 rounded-full bg-emerald-400';
+        mainText.innerText = `ALL 17 CAMPUSES & 47 LINKS GREEN (GOOD)`;
+      }
+
+      updateUserUI();
+    }
+
+    function toggleLinkOutage(linkId, campusName, linkName) {
+      if (currentUser && currentUser.role === 'VIEWER') {
+        showNotice('Read-only Viewers cannot modify link statuses.');
+        return;
+      }
+      if (outages[linkId]) {
+        delete outages[linkId];
+        showNotice(`Restored ${campusName} — ${linkName} to GREEN.`);
+      } else {
+        const ticketSeq = Math.floor(100 + Math.random() * 900);
+        outages[linkId] = {
+          ticket: `COP-INC-2026-0${ticketSeq}`,
+          telcoRef: 'Ref# 1440' + Math.floor(1000 + Math.random() * 9000),
+          problem: 'Circuit Outage / Fiber Break detected'
+        };
+        showNotice(`Marked ${campusName} — ${linkName} RED (Outage).`);
+      }
+      saveState();
+      renderCampuses();
+    }
+
+    function restoreAllGreen() {
+      outages = {};
+      saveState();
+      renderCampuses();
+      showNotice('All 47 links across all 17 Cathedral of Praise campuses restored to GREEN.');
+    }
+
+    function setFilter(f) {
+      currentFilter = f;
+      document.getElementById('filterAll').className = f === 'ALL' ? 'px-2 py-0.5 rounded bg-white text-slate-900' : 'px-2 py-0.5 rounded text-slate-300 hover:text-white';
+      document.getElementById('filterGreen').className = f === 'GREEN' ? 'px-2 py-0.5 rounded bg-white text-slate-900' : 'px-2 py-0.5 rounded text-slate-300 hover:text-white';
+      document.getElementById('filterRed').className = f === 'RED' ? 'px-2 py-0.5 rounded bg-white text-slate-900' : 'px-2 py-0.5 rounded text-slate-300 hover:text-white';
+      renderCampuses();
+    }
+
+    // ================= USER & RBAC MANAGEMENT =================
+    function updateUserUI() {
+      if (currentUser) {
+        document.getElementById('labelCurrentUserName').innerText = currentUser.name.split(' ')[0];
+        document.getElementById('labelCurrentUserRole').innerText = currentUser.role;
+        document.getElementById('dropdownUserFullName').innerText = currentUser.name;
+        document.getElementById('dropdownUserEmail').innerText = currentUser.email;
+        document.getElementById('btnAdminApprovals').style.display = currentUser.role === 'ADMIN' ? 'flex' : 'none';
+      } else {
+        document.getElementById('labelCurrentUserName').innerText = 'Sign In';
+        document.getElementById('labelCurrentUserRole').innerText = 'GUEST';
+        document.getElementById('btnAdminApprovals').style.display = 'none';
+      }
+
+      const pendingCount = users.filter(u => u.status === 'PENDING').length;
+      const badge = document.getElementById('badgePendingCount');
+      if (pendingCount > 0) {
+        badge.innerText = pendingCount;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+
+      document.getElementById('userCount').innerText = users.length;
+
+      // Render Users Table
+      const tbody = document.getElementById('userTableBody');
+      if (!tbody) return;
+      let html = '';
+      users.forEach(u => {
+        const isSelf = currentUser && u.id === currentUser.id;
+        const statusBadge = u.status === 'ACTIVE' 
+          ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">ACTIVE</span>'
+          : (u.status === 'PENDING'
+            ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse">PENDING</span>'
+            : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">SUSPENDED</span>');
+
+        html += `
+          <tr class="hover:bg-slate-800/40">
+            <td class="py-2.5 px-4 font-semibold text-white">${u.name} <div class="text-[10px] font-mono text-slate-400">${u.email}</div></td>
+            <td class="py-2.5 px-4">
+              <select onchange="changeRole('${u.id}', this.value)" ${isSelf ? 'disabled' : ''} class="px-2 py-1 bg-slate-900 border border-slate-700 rounded text-slate-200">
+                <option value="ADMIN" ${u.role === 'ADMIN' ? 'selected' : ''}>ADMIN</option>
+                <option value="OPERATOR" ${u.role === 'OPERATOR' ? 'selected' : ''}>OPERATOR</option>
+                <option value="VIEWER" ${u.role === 'VIEWER' ? 'selected' : ''}>VIEWER</option>
+              </select>
+            </td>
+            <td class="py-2.5 px-4">${statusBadge}</td>
+            <td class="py-2.5 px-4 text-slate-300">${u.department || 'NOC'}</td>
+            <td class="py-2.5 px-4 text-right">
+              <div class="flex items-center justify-end gap-1.5">
+                ${u.status === 'PENDING' ? `<button onclick="approveUser('${u.id}')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold">Approve</button>` : ''}
+                ${u.status === 'ACTIVE' && !isSelf ? `<button onclick="suspendUser('${u.id}')" class="px-2.5 py-1 bg-rose-950 border border-rose-700 text-rose-300 hover:bg-rose-900 rounded">Suspend</button>` : ''}
+                ${u.status === 'SUSPENDED' ? `<button onclick="reactivateUser('${u.id}')" class="px-2.5 py-1 bg-emerald-950 border border-emerald-700 text-emerald-300 hover:bg-emerald-900 rounded">Reactivate</button>` : ''}
+                <button onclick="promptResetUserPassword('${u.id}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[11px]" title="Reset Password">Reset Pass</button>
+                ${!isSelf ? `<button onclick="deleteUser('${u.id}')" class="p-1 text-slate-500 hover:text-rose-400">🗑️</button>` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
+    function approveUser(userId) {
+      const u = users.find(x => x.id === userId);
+      if (u) {
+        u.status = 'ACTIVE';
+        saveState();
+        updateUserUI();
+        showNotice(`Approved ${u.name} (${u.email}). Account is now ACTIVE.`);
+      }
+    }
+
+    function suspendUser(userId) {
+      const u = users.find(x => x.id === userId);
+      if (u) {
+        u.status = 'SUSPENDED';
+        saveState();
+        updateUserUI();
+        showNotice(`Suspended access for ${u.name}.`);
+      }
+    }
+
+    function reactivateUser(userId) {
+      const u = users.find(x => x.id === userId);
+      if (u) {
+        u.status = 'ACTIVE';
+        saveState();
+        updateUserUI();
+        showNotice(`Reactivated ${u.name}.`);
+      }
+    }
+
+    function changeRole(userId, newRole) {
+      const u = users.find(x => x.id === userId);
+      if (u) {
+        u.role = newRole;
+        saveState();
+        updateUserUI();
+        showNotice(`Updated ${u.name} role to ${newRole}.`);
+      }
+    }
+
+    function deleteUser(userId) {
+      if (confirm('Delete this user account?')) {
+        users = users.filter(x => x.id !== userId);
+        saveState();
+        updateUserUI();
+        showNotice('User deleted.');
+      }
+    }
+
+    function promptResetUserPassword(userId) {
+      const u = users.find(x => x.id === userId);
+      if (!u) return;
+      const newP = prompt(`Enter new password for ${u.name} (min 6 characters):`);
+      if (newP && newP.trim().length >= 6) {
+        u.password = newP.trim();
+        saveState();
+        showNotice(`Password for ${u.name} updated successfully.`);
+      } else if (newP) {
+        alert('Password must be at least 6 characters.');
+      }
+    }
+
+    function toggleAddUserForm() {
+      const el = document.getElementById('formAddUserInline');
+      el.classList.toggle('hidden');
+    }
+
+    function submitNewUser() {
+      const name = document.getElementById('newUserName').value.trim();
+      const email = document.getElementById('newUserEmail').value.trim().toLowerCase();
+      const pass = document.getElementById('newUserPass').value.trim();
+      const role = document.getElementById('newUserRole').value;
+      const dept = document.getElementById('newUserDept').value.trim() || 'Cathedral of Praise IT';
+
+      if (!name || !email || !pass) {
+        alert('Please fill name, email, and password.');
+        return;
+      }
+
+      users.push({
+        id: 'user-' + Date.now(),
+        name, email, password: pass, role, status: 'ACTIVE', department: dept
+      });
+      saveState();
+      toggleAddUserForm();
+      updateUserUI();
+      showNotice(`Provisioned ${name} as ${role}.`);
+    }
+
+    // ================= AUTH MODAL & FULL LOGIN PAGE LOGIC =================
+    function openAuthModal() {
+      document.getElementById('modalAuth').classList.remove('hidden');
+      document.getElementById('authAlert').classList.add('hidden');
+    }
+    function closeAuthModal() {
+      document.getElementById('modalAuth').classList.add('hidden');
+    }
+
+    function doLogout() {
+      currentUser = null;
+      isGuest = false;
+      localStorage.removeItem('cop_gh_cur_user');
+      localStorage.removeItem('cop_gh_guest');
+      saveState();
+      document.getElementById('userDropdownMenu').classList.add('hidden');
+      updateUserUI();
+      // Show full login gateway page
+      switchAuthTab('login');
+      openAuthModal();
+      showNotice('Signed out. Opened Cathedral of Praise Login Portal.');
+    }
+
+    function continueAsGuest() {
+      isGuest = true;
+      localStorage.setItem('cop_gh_guest', 'true');
+      closeAuthModal();
+      updateUserUI();
+      showNotice('Continuing in Guest Mode (Read-Only Wallboard View).');
+    }
+
+    function switchAuthTab(t) {
+      document.getElementById('authAlert').classList.add('hidden');
+      document.getElementById('formLogin').classList.add('hidden');
+      document.getElementById('formRegister').classList.add('hidden');
+      document.getElementById('formForgot').classList.add('hidden');
+
+      document.getElementById('tabLogin').className = 'flex-1 py-3 text-slate-400 border-b-2 border-transparent hover:text-white';
+      document.getElementById('tabRegister').className = 'flex-1 py-3 text-slate-400 border-b-2 border-transparent hover:text-white';
+      document.getElementById('tabForgot').className = 'flex-1 py-3 text-slate-400 border-b-2 border-transparent hover:text-white';
+
+      if (t === 'login') {
+        document.getElementById('tabLogin').className = 'flex-1 py-3 text-indigo-300 border-b-2 border-indigo-500';
+        document.getElementById('formLogin').classList.remove('hidden');
+      } else if (t === 'register') {
+        document.getElementById('tabRegister').className = 'flex-1 py-3 text-indigo-300 border-b-2 border-indigo-500';
+        document.getElementById('formRegister').classList.remove('hidden');
+      } else if (t === 'forgot') {
+        document.getElementById('tabForgot').className = 'flex-1 py-3 text-indigo-300 border-b-2 border-indigo-500';
+        document.getElementById('formForgot').classList.remove('hidden');
+        document.getElementById('forgotStep1').classList.remove('hidden');
+        document.getElementById('forgotStep2').classList.add('hidden');
+      }
+    }
+
+    function quickFillAdmin() {
+      document.getElementById('loginEmail').value = 'cop.jmnadado@gmail.com';
+      document.getElementById('loginPass').value = 'Admin@COP2026!';
+    }
+
+    function doLogin() {
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+      const pass = document.getElementById('loginPass').value.trim();
+      const alertBox = document.getElementById('authAlert');
+
+      const u = users.find(x => x.email.toLowerCase() === email || (x.id === 'user-admin-1' && (email === 'cop.jmnadado@gmail.com' || email === 'jmnadado@cathedralofpraise.com.ph')));
+      if (!u || u.password !== pass) {
+        alertBox.className = 'p-3 rounded-lg text-xs bg-rose-950/80 border border-rose-600 text-rose-200';
+        alertBox.innerText = 'Invalid email or password.';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+      if (u.status === 'SUSPENDED') {
+        alertBox.className = 'p-3 rounded-lg text-xs bg-rose-950/80 border border-rose-600 text-rose-200';
+        alertBox.innerText = 'Account Suspended: Access revoked by NOC Administrator.';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+      if (u.status === 'PENDING') {
+        alertBox.className = 'p-3 rounded-lg text-xs bg-amber-950/80 border border-amber-600 text-amber-200';
+        alertBox.innerText = 'Account Pending: Awaiting approval by Jeffrey Nadado (Admin).';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+
+      currentUser = u;
+      isGuest = false;
+      localStorage.removeItem('cop_gh_guest');
+      saveState();
+      closeAuthModal();
+      updateUserUI();
+      showNotice(`Signed in as ${u.name} (${u.role}).`);
+    }
+
+    function doRegister() {
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim().toLowerCase();
+      const pass = document.getElementById('regPass').value.trim();
+      const dept = document.getElementById('regDept').value.trim() || 'General Operations';
+      const alertBox = document.getElementById('authAlert');
+
+      if (!name || !email || !pass) {
+        alertBox.className = 'p-3 rounded-lg text-xs bg-rose-950/80 border border-rose-600 text-rose-200';
+        alertBox.innerText = 'Please provide name, email, and password.';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+
+      if (users.some(x => x.email.toLowerCase() === email)) {
+        alertBox.className = 'p-3 rounded-lg text-xs bg-rose-950/80 border border-rose-600 text-rose-200';
+        alertBox.innerText = 'An account with this email already exists.';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+
+      users.push({
+        id: 'user-' + Date.now(),
+        name, email, password: pass, role: 'OPERATOR', status: 'PENDING', department: dept
+      });
+      saveState();
+      switchAuthTab('login');
+      alertBox.className = 'p-3 rounded-lg text-xs bg-emerald-950/80 border border-emerald-600 text-emerald-200';
+      alertBox.innerText = 'Registration submitted! Awaiting approval by Jeffrey Nadado (Admin).';
+      alertBox.classList.remove('hidden');
+      updateUserUI();
+    }
+
+    // ================= FORGOT PASSWORD LOGIC =================
+    function doGenerateResetCode() {
+      const email = document.getElementById('forgotEmailInput').value.trim().toLowerCase();
+      const alertBox = document.getElementById('authAlert');
+
+      const u = users.find(x => x.email.toLowerCase() === email || (x.id === 'user-admin-1' && (email === 'cop.jmnadado@gmail.com' || email === 'jmnadado@cathedralofpraise.com.ph')));
+      if (!u) {
+        alertBox.className = 'p-3 rounded-lg text-xs bg-rose-950/80 border border-rose-600 text-rose-200';
+        alertBox.innerText = 'No registered account found with that email address.';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+
+      currentResetCode = Math.floor(100000 + Math.random() * 900000).toString();
+      document.getElementById('forgotCodeDisplay').innerText = currentResetCode;
+      document.getElementById('forgotCodeInput').value = currentResetCode;
+      document.getElementById('forgotStep1').classList.add('hidden');
+      document.getElementById('forgotStep2').classList.remove('hidden');
+      alertBox.className = 'p-3 rounded-lg text-xs bg-cyan-950/80 border border-cyan-600 text-cyan-200';
+      alertBox.innerText = 'Reset verification code generated! Enter code and set your new password.';
+      alertBox.classList.remove('hidden');
+    }
+
+    function doSaveNewPasswordFromForgot() {
+      const email = document.getElementById('forgotEmailInput').value.trim().toLowerCase();
+      const code = document.getElementById('forgotCodeInput').value.trim();
+      const newP = document.getElementById('forgotNewPassInput').value.trim();
+      const confirmP = document.getElementById('forgotConfirmPassInput').value.trim();
+      const alertBox = document.getElementById('authAlert');
+
+      if (!code || code !== currentResetCode) {
+        alertBox.className = 'p-3 rounded-lg text-xs bg-rose-950/80 border border-rose-600 text-rose-200';
+        alertBox.innerText = 'Invalid 6-digit verification code.';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+      if (newP.length < 6) {
+        alertBox.className = 'p-3 rounded-lg text-xs bg-rose-950/80 border border-rose-600 text-rose-200';
+        alertBox.innerText = 'New password must be at least 6 characters.';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+      if (newP !== confirmP) {
+        alertBox.className = 'p-3 rounded-lg text-xs bg-rose-950/80 border border-rose-600 text-rose-200';
+        alertBox.innerText = 'Passwords do not match.';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+
+      const u = users.find(x => x.email.toLowerCase() === email || (x.id === 'user-admin-1' && (email === 'cop.jmnadado@gmail.com' || email === 'jmnadado@cathedralofpraise.com.ph')));
+      if (u) {
+        u.password = newP;
+        saveState();
+        switchAuthTab('login');
+        document.getElementById('loginEmail').value = email;
+        document.getElementById('loginPass').value = newP;
+        alertBox.className = 'p-3 rounded-lg text-xs bg-emerald-950/80 border border-emerald-600 text-emerald-200';
+        alertBox.innerText = 'Password successfully reset! You can now sign in with your new credentials.';
+        alertBox.classList.remove('hidden');
+      }
+    }
+
+    // ================= CHANGE PASSWORD MODAL LOGIC =================
+    function openChangePasswordModal() {
+      document.getElementById('userDropdownMenu').classList.add('hidden');
+      document.getElementById('changePassAlert').classList.add('hidden');
+      document.getElementById('cpCurrentPass').value = '';
+      document.getElementById('cpNewPass').value = '';
+      document.getElementById('cpConfirmPass').value = '';
+      document.getElementById('modalChangePassword').classList.remove('hidden');
+    }
+    function closeChangePasswordModal() {
+      document.getElementById('modalChangePassword').classList.add('hidden');
+    }
+    function submitChangePassword() {
+      if (!currentUser) return;
+      const curP = document.getElementById('cpCurrentPass').value.trim();
+      const newP = document.getElementById('cpNewPass').value.trim();
+      const conP = document.getElementById('cpConfirmPass').value.trim();
+      const alertBox = document.getElementById('changePassAlert');
+
+      if (curP !== currentUser.password) {
+        alertBox.className = 'p-3 rounded-lg text-xs bg-rose-950/80 border border-rose-600 text-rose-200';
+        alertBox.innerText = 'Current password does not match.';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+      if (newP.length < 6) {
+        alertBox.className = 'p-3 rounded-lg text-xs bg-rose-950/80 border border-rose-600 text-rose-200';
+        alertBox.innerText = 'New password must be at least 6 characters long.';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+      if (newP !== conP) {
+        alertBox.className = 'p-3 rounded-lg text-xs bg-rose-950/80 border border-rose-600 text-rose-200';
+        alertBox.innerText = 'New password and confirm password do not match.';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+
+      currentUser.password = newP;
+      const u = users.find(x => x.id === currentUser.id);
+      if (u) u.password = newP;
+      saveState();
+      closeChangePasswordModal();
+      showNotice('Your password has been updated successfully!');
+    }
+
+    // ================= REPORT EXPORT CENTER =================
+    function openReportModal() {
+      const now = new Date();
+      document.getElementById('reportPrintDate').innerText = now.toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' });
+      document.getElementById('reportPreparedByName').innerText = currentUser ? currentUser.name : 'Jeffrey Nadado';
+
+      let totalGood = 0;
+      let totalRed = 0;
+      let matrixHtml = '';
+
+      CAMPUSES.forEach(c => {
+        let hasDown = false;
+        c.links.forEach(l => {
+          if (outages[l.id]) { hasDown = true; totalRed++; } else { totalGood++; }
+        });
+        matrixHtml += `
+          <div class="p-2 border rounded ${hasDown ? 'bg-rose-50 border-rose-200 text-rose-950' : 'bg-slate-50 border-slate-200 text-slate-900'}">
+            <div class="flex items-center justify-between font-bold">
+              <span>${c.name}</span>
+              <span class="text-[10px] font-mono px-1 rounded ${hasDown ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'}">${hasDown ? 'OUTAGE' : 'OK'}</span>
+            </div>
+            <div class="text-[10px] text-slate-500 font-mono mt-1">${c.links.length} Links Monitored</div>
+          </div>
+        `;
+      });
+
+      document.getElementById('reportGoodCount').innerText = totalGood;
+      document.getElementById('reportRedCount').innerText = totalRed;
+      document.getElementById('reportCampusMatrixGrid').innerHTML = matrixHtml;
+      document.getElementById('modalReport').classList.remove('hidden');
+    }
+    function closeReportModal() {
+      document.getElementById('modalReport').classList.add('hidden');
+    }
+
+    function exportCircuitsCsv() {
+      const headers = ['Campus Name', 'Region', 'Link Name', 'Circuit ID', 'Account Number', 'Provider', 'Current Status'];
+      const rows = [];
+      CAMPUSES.forEach(c => {
+        c.links.forEach(l => {
+          const status = outages[l.id] ? 'OUTAGE (RED)' : 'OPERATIONAL (GREEN)';
+          rows.push([`"${c.name}"`, `"${c.region}"`, `"${l.name}"`, `"${l.cid}"`, `"${l.acct}"`, `"${l.provider}"`, `"${status}"`]);
+        });
+      });
+
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `Cathedral_of_Praise_Circuits_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showNotice('Circuits CSV exported successfully.');
+    }
+
+    function exportIncidentsCsv() {
+      const headers = ['Ticket Number', 'Campus Link', 'Telco Reference Number', 'Problem Summary', 'Current Status'];
+      const rows = [];
+      Object.entries(outages).forEach(([linkId, out]) => {
+        rows.push([`"${out.ticket}"`, `"${linkId}"`, `"${out.telcoRef}"`, `"${out.problem}"`, '"ACTIVE OUTAGE"']);
+      });
+
+      if (rows.length === 0) {
+        rows.push(['"NONE"', '"All 47 Links Operational"', '"N/A"', '"All links green"', '"OK"']);
+      }
+
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `Cathedral_of_Praise_Incidents_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showNotice('Incidents CSV exported successfully.');
+    }
+
+    // ================= CAMPUS & TELCO MANAGEMENT =================
+    let selectedTelcoCampusName = '';
+
+    function openAddCampusModal() {
+      document.getElementById('modalCampusTelco').classList.remove('hidden');
+      switchTelcoTab('add');
+    }
+
+    function openEditCampusTelcoModal(campusName) {
+      document.getElementById('modalCampusTelco').classList.remove('hidden');
+      selectedTelcoCampusName = campusName || (CAMPUSES.length > 0 ? CAMPUSES[0].name : '');
+      switchTelcoTab('edit');
+      populateTelcoCampusSelect();
+    }
+
+    function closeCampusTelcoModal() {
+      document.getElementById('modalCampusTelco').classList.add('hidden');
+    }
+
+    function switchTelcoTab(tab) {
+      const tabEdit = document.getElementById('tabTelcoEdit');
+      const tabAdd = document.getElementById('tabTelcoAdd');
+      const contentEdit = document.getElementById('telcoTabContentEdit');
+      const contentAdd = document.getElementById('telcoTabContentAdd');
+
+      if (tab === 'edit') {
+        tabEdit.className = 'pb-2.5 px-3 border-b-2 border-cyan-400 text-cyan-400 font-bold';
+        tabAdd.className = 'pb-2.5 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200';
+        contentEdit.classList.remove('hidden');
+        contentAdd.classList.add('hidden');
+        populateTelcoCampusSelect();
+      } else {
+        tabAdd.className = 'pb-2.5 px-3 border-b-2 border-cyan-400 text-cyan-400 font-bold';
+        tabEdit.className = 'pb-2.5 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200';
+        contentAdd.classList.remove('hidden');
+        contentEdit.classList.add('hidden');
+      }
+    }
+
+    function populateTelcoCampusSelect() {
+      const select = document.getElementById('selectTelcoCampus');
+      if (!select) return;
+      select.innerHTML = CAMPUSES.map(c => `<option value="${c.name}" ${c.name === selectedTelcoCampusName ? 'selected' : ''}>${c.name} (${c.links.length} links)</option>`).join('');
+      if (!selectedTelcoCampusName && CAMPUSES.length > 0) {
+        selectedTelcoCampusName = CAMPUSES[0].name;
+      }
+      renderTelcoEditForm();
+    }
+
+    function renderTelcoEditForm() {
+      const select = document.getElementById('selectTelcoCampus');
+      if (select) selectedTelcoCampusName = select.value;
+      const campus = CAMPUSES.find(c => c.name === selectedTelcoCampusName);
+      const listContainer = document.getElementById('telcoCircuitsList');
+      if (!campus || !listContainer) return;
+
+      let html = '';
+      campus.links.forEach((l) => {
+        html += `
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
+            <div class="flex items-center justify-between pb-1.5 border-b border-slate-800/80">
+              <span class="text-xs font-bold text-white">${l.name} (${l.provider})</span>
+              <button onclick="deleteCircuit('${campus.name}', '${l.id}')" class="text-xs text-red-400 hover:text-red-300">🗑️ Remove Circuit</button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <div>
+                <label class="block text-[10px] text-slate-400 mb-0.5">Link Name</label>
+                <input type="text" id="telco_name_${l.id}" value="${l.name}" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white" />
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-400 mb-0.5">Provider</label>
+                <input type="text" id="telco_provider_${l.id}" value="${l.provider}" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white" />
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-400 mb-0.5">Circuit ID (CID)</label>
+                <input type="text" id="telco_cid_${l.id}" value="${l.cid}" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white font-mono" />
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-400 mb-0.5">Account Number</label>
+                <input type="text" id="telco_acct_${l.id}" value="${l.acct}" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white font-mono" />
+              </div>
+            </div>
+            <div class="flex justify-end pt-1">
+              <button onclick="saveCircuitDetails('${campus.name}', '${l.id}')" class="px-3 py-1 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs rounded transition-colors">
+                Save Link Details
+              </button>
+            </div>
+          </div>
+        `;
+      });
+      listContainer.innerHTML = html;
+    }
+
+    function saveCircuitDetails(campusName, linkId) {
+      const campus = CAMPUSES.find(c => c.name === campusName);
+      if (!campus) return;
+      const link = campus.links.find(l => l.id === linkId);
+      if (!link) return;
+
+      const newName = document.getElementById(`telco_name_${linkId}`).value.trim();
+      const newProvider = document.getElementById(`telco_provider_${linkId}`).value.trim();
+      const newCid = document.getElementById(`telco_cid_${linkId}`).value.trim();
+      const newAcct = document.getElementById(`telco_acct_${linkId}`).value.trim();
+
+      if (newName) link.name = newName;
+      if (newProvider) link.provider = newProvider;
+      if (newCid) link.cid = newCid;
+      if (newAcct) link.acct = newAcct;
+
+      saveState();
+      renderCampuses();
+      showNotice(`Updated telco details for ${campusName} — ${link.name}.`);
+    }
+
+    function promptAddCircuitToCampus() {
+      const campus = CAMPUSES.find(c => c.name === selectedTelcoCampusName);
+      if (!campus) return;
+
+      const provider = prompt(`Enter Telco Provider for ${campus.name}:`, 'Starlink Enterprise');
+      if (!provider) return;
+      const linkName = prompt('Enter Link Name:', `${provider} Link`);
+      if (!linkName) return;
+      const cid = prompt('Enter Circuit ID (CID):', `CID-${Math.floor(100000 + Math.random() * 900000)}`) || 'N/A';
+      const acct = prompt('Enter Account Number:', 'N/A (Circuit ID)') || 'N/A';
+
+      const newId = `${campus.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`;
+      campus.links.push({
+        id: newId,
+        name: linkName,
+        cid,
+        acct,
+        provider,
+        status: 'Operational'
+      });
+
+      saveState();
+      renderCampuses();
+      renderTelcoEditForm();
+      showNotice(`Added new circuit "${linkName}" to ${campus.name}.`);
+    }
+
+    function deleteCircuit(campusName, linkId) {
+      const campus = CAMPUSES.find(c => c.name === campusName);
+      if (!campus) return;
+      if (!confirm(`Are you sure you want to remove this circuit from ${campusName}?`)) return;
+
+      campus.links = campus.links.filter(l => l.id !== linkId);
+      delete outages[linkId];
+      saveState();
+      renderCampuses();
+      renderTelcoEditForm();
+      showNotice(`Removed circuit from ${campusName}.`);
+    }
+
+    function deleteCurrentCampus() {
+      if (!selectedTelcoCampusName) return;
+      if (!confirm(`WARNING: Are you sure you want to delete campus branch "${selectedTelcoCampusName}" and all its circuits?`)) return;
+
+      CAMPUSES = CAMPUSES.filter(c => c.name !== selectedTelcoCampusName);
+      saveState();
+      renderCampuses();
+      if (CAMPUSES.length > 0) {
+        selectedTelcoCampusName = CAMPUSES[0].name;
+        populateTelcoCampusSelect();
+      } else {
+        closeCampusTelcoModal();
+      }
+      showNotice(`Deleted campus "${selectedTelcoCampusName}".`);
+    }
+
+    function saveNewCampusBranch() {
+      const name = document.getElementById('newBranchName').value.trim();
+      const region = document.getElementById('newBranchRegion').value.trim() || 'Regional Sanctuary';
+      const provider = document.getElementById('newBranchTelco').value;
+      const cid = document.getElementById('newBranchCid').value.trim() || `CID-${Math.floor(100000 + Math.random() * 900000)}`;
+      const acct = document.getElementById('newBranchAcct').value.trim() || 'N/A (Circuit ID)';
+
+      if (!name) {
+        alert('Please enter a campus name.');
+        return;
+      }
+
+      const idPrefix = name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+      const newCampus = {
+        name,
+        region,
+        links: [
+          {
+            id: `${idPrefix}-link-1`,
+            name: `${provider} Internet`,
+            cid,
+            acct,
+            provider,
+            status: 'Operational'
+          }
+        ]
+      };
+
+      CAMPUSES.push(newCampus);
+      saveState();
+      renderCampuses();
+      closeCampusTelcoModal();
+      showNotice(`Created new branch "${name}" with 1 active circuit!`);
+      document.getElementById('newBranchName').value = '';
+      document.getElementById('newBranchCid').value = '';
+    }
+
+    // ================= RECORD OUTAGE MODAL =================
+    function openRecordModal() {
+      if (currentUser && currentUser.role === 'VIEWER') {
+        showNotice('Read-only Viewers cannot record outages.');
+        return;
+      }
+      const sel = document.getElementById('recordLinkSelect');
+      let html = '';
+      CAMPUSES.forEach(c => {
+        c.links.forEach(l => {
+          html += `<option value="${l.id}">${c.name} — ${l.name} (${l.cid})</option>`;
+        });
+      });
+      sel.innerHTML = html;
+      document.getElementById('modalRecord').classList.remove('hidden');
+    }
+    function closeRecordModal() {
+      document.getElementById('modalRecord').classList.add('hidden');
+    }
+    function submitOutageRecord() {
+      const linkId = document.getElementById('recordLinkSelect').value;
+      const telcoRef = document.getElementById('recordTelcoRef').value.trim() || 'Pending Telco Ref';
+      const problem = document.getElementById('recordProblem').value.trim() || 'Network Link Outage';
+
+      const ticketSeq = Math.floor(100 + Math.random() * 900);
+      outages[linkId] = {
+        ticket: `COP-INC-2026-0${ticketSeq}`,
+        telcoRef,
+        problem
+      };
+      saveState();
+      closeRecordModal();
+      renderCampuses();
+      showNotice(`Logged Incident Ticket ${outages[linkId].ticket} (${telcoRef}). Link is now RED.`);
+    }
+
+    // ================= CIRCUIT DIRECTORY MODAL =================
+    function openCircuitModal() {
+      const tbody = document.getElementById('circuitTableBody');
+      let html = '';
+      CAMPUSES.forEach(c => {
+        c.links.forEach(l => {
+          html += `
+            <tr class="hover:bg-slate-800/40">
+              <td class="py-2.5 px-4 font-bold text-white">${c.name}</td>
+              <td class="py-2.5 px-4 text-slate-200">${l.name}</td>
+              <td class="py-2.5 px-4 text-cyan-400 font-semibold">${maskValue(l.cid)}</td>
+              <td class="py-2.5 px-4 text-amber-300 font-semibold">${maskValue(l.acct)}</td>
+              <td class="py-2.5 px-4 text-slate-400">${l.provider}</td>
+            </tr>
+          `;
+        });
+      });
+      tbody.innerHTML = html;
+      document.getElementById('modalCircuit').classList.remove('hidden');
+    }
+    function closeCircuitModal() {
+      document.getElementById('modalCircuit').classList.add('hidden');
+    }
+
+    function openUserModal() {
+      updateUserUI();
+      document.getElementById('modalUserMgmt').classList.remove('hidden');
+    }
+    function closeUserModal() {
+      document.getElementById('modalUserMgmt').classList.add('hidden');
+    }
+
+    // Initial render
+    renderCampuses();
+    if (!currentUser && !isGuest) {
+      switchAuthTab('login');
+      openAuthModal();
+    }
+  </script>
+</body>
+</html>
